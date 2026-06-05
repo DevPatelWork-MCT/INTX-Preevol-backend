@@ -14,7 +14,7 @@ export function createApplication(): Express {
 
     // Routes
     app.get('/', (req, res) => {
-        return res.json({ message: 'Welcome to ChaiCode Auth Service' })
+        return res.json({ message: 'Base test route' })
     })
 
     app.use('/auth', authRouter)

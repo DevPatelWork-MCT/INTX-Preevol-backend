@@ -8,6 +8,20 @@
       "when": 1780566285139,
       "tag": "0000_complete_prowler",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1780633394639,
+      "tag": "0001_same_ultimates",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780635496526,
+      "tag": "0002_typical_meggan",
+      "breakpoints": true
     }
   ]
 }
