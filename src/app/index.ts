@@ -1,7 +1,8 @@
 import express from 'express'
-import type { Express } from 'express'
+import type { Express, Request, Response, NextFunction } from 'express'
 
 import { authRouter } from './auth/routes.js'
+import { adminRouter } from './admin/routes.js'
 import { authenticationMiddleware } from './middleware/auth-middleware.js'
 
 export function createApplication(): Express {
@@ -18,7 +19,13 @@ export function createApplication(): Express {
     })
 
     app.use('/auth', authRouter)
+    app.use('/admin', adminRouter)
 
+    // Error handler
+    app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+        console.error('Unhandled error:', err)
+        return res.status(500).json({ error: 'Internal server error', message: err.message })
+    })
 
     return app
 }

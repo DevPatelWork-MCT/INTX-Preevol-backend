@@ -1,0 +1,14 @@
+$ node dist/index
+Error: Failed query: insert into "users" ("id", "first_name", "last_name", "email", "email_verified", "password", "salt", "role_id", "is_admin", "admin_requested", "account_status", "company", "created_at", "updated_at") values (default, $1, $2, $3, default, $4, $5, default, $6, $7, $8, default, default, $9) returning "id"
+params: Test,User,test@example.com,ddd6d85c2232e5746c9c19b28b0ad5d4c7513e7d9a46a104dca4c8754b01bf8b,77268ca76bfe1c2b970e9cc37f85ea32199442bebc3c7e4be66ababe36fca404,false,false,pending,2026-06-08T07:03:47.926Z
+    at NodePgPreparedQuery.queryWithCache (file:///C:/Users/MCT/Desktop/Preevol%20new%20backend/node_modules/drizzle-orm/pg-core/session.js:41:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///C:/Users/MCT/Desktop/Preevol%20new%20backend/node_modules/drizzle-orm/node-postgres/session.js:117:22
+    at async AuthenticationController.handleSignup (file:///C:/Users/MCT/Desktop/Preevol%20new%20backend/dist/app/auth/controller.js:18:26)
+Error: Failed query: insert into "users" ("id", "first_name", "last_name", "email", "email_verified", "password", "salt", "role_id", "is_admin", "admin_requested", "account_status", "company", "created_at", "updated_at") values (default, $1, $2, $3, default, $4, $5, default, $6, $7, $8, default, default, $9) returning "id"
+params: Test,User,test@example.com,eff8b439a09f3141ae356d55e9f8d56ad0b003dc9f46b49b80e05798a90ca23c,3f0dbdd87b6eafab30bf0552767fb489b940a7d2aedd1562722f7ebd7160cd88,false,false,pending,2026-06-08T07:04:11.937Z
+    at NodePgPreparedQuery.queryWithCache (file:///C:/Users/MCT/Desktop/Preevol%20new%20backend/node_modules/drizzle-orm/pg-core/session.js:41:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///C:/Users/MCT/Desktop/Preevol%20new%20backend/node_modules/drizzle-orm/node-postgres/session.js:117:22
+    at async AuthenticationController.handleSignup (file:///C:/Users/MCT/Desktop/Preevol%20new%20backend/dist/app/auth/controller.js:18:26)
+error: script "start" exited with code 255

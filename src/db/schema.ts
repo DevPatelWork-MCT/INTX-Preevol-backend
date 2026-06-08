@@ -22,10 +22,20 @@ export const usersTable = pgTable('users', {
 
     roleId: integer('role_id').references(() => rolesTable.roleId),
     isAdmin: boolean('is_admin').default(false).notNull(),
+    adminRequested: boolean('admin_requested').default(false).notNull(),
+    accountStatus: varchar('account_status', { length: 20 }).default('pending').notNull(),
     company: varchar('company', { length: 100 }),
 
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').$onUpdate(() => new Date()),
+})
+
+export const sessionsTable = pgTable('sessions', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+    token: text('token').notNull().unique(),
+    expiresAt: timestamp('expires_at').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
 export const companyTable = pgTable('Company', {
