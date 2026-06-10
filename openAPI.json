@@ -1,0 +1,539 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Preevol Backend API",
+    "version": "1.0.0",
+    "description": "Authentication, Admin and CRUD APIs for Party, Company and Bank."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+
+      "SignupRequest": {
+        "type": "object",
+        "required": ["firstName", "email", "password"],
+        "properties": {
+          "firstName": { "type": "string", "minLength": 2 },
+          "lastName": { "type": "string", "nullable": true },
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string", "minLength": 6, "maxLength": 100 },
+          "company": { "type": "string", "nullable": true },
+          "isAdmin": { "type": "boolean", "default": false }
+        }
+      },
+
+      "ApproveUserRequest": {
+        "type": "object",
+        "properties": {
+          "roleId": { "type": "integer", "description": "Role ID to assign" },
+          "grantAdmin": { "type": "boolean", "default": false, "description": "Grant admin privileges" }
+        }
+      },
+      "SigninRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string", "minLength": 6, "maxLength": 100 }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" },
+          "data": {
+            "type": "object",
+            "properties": {
+              "token": { "type": "string" },
+              "expiresAt": { "type": "string", "format": "date-time" },
+              "id": { "type": "string", "format": "uuid" }
+            }
+          }
+        }
+      },
+
+
+      "Role": {
+        "type": "object",
+        "properties": {
+          "roleId": { "type": "integer" },
+          "roleName": { "type": "string" },
+          "company": { "type": "string", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+
+
+      "Party": {
+        "type": "object",
+        "properties": {
+          "PartyID": { "type": "integer" },
+          "PartyName": { "type": "string", "maxLength": 255 },
+          "ContactPerson": { "type": "string", "maxLength": 255, "nullable": true },
+          "Contact1": { "type": "string", "maxLength": 100, "nullable": true },
+          "Contact2": { "type": "string", "maxLength": 100, "nullable": true },
+          "Address": { "type": "string", "nullable": true },
+          "City": { "type": "string", "maxLength": 100, "nullable": true },
+          "State": { "type": "string", "maxLength": 100, "nullable": true },
+          "Country": { "type": "string", "maxLength": 100, "nullable": true },
+          "StateCode": { "type": "integer", "nullable": true },
+          "Email": { "type": "string", "maxLength": 255, "nullable": true },
+          "Website": { "type": "string", "maxLength": 255, "nullable": true },
+          "GSTStatus": { "type": "string", "maxLength": 100, "nullable": true },
+          "GSTIN": { "type": "string", "maxLength": 50, "nullable": true },
+          "PANNo": { "type": "string", "maxLength": 50, "nullable": true },
+          "VATNo": { "type": "integer", "nullable": true },
+          "CSTNo": { "type": "integer", "nullable": true },
+          "ECCNo": { "type": "string", "maxLength": 100, "nullable": true },
+          "IECCode": { "type": "string", "maxLength": 100, "nullable": true },
+          "Company": { "type": "string", "maxLength": 255, "nullable": true },
+          "Pin": { "type": "string", "maxLength": 50, "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CreatePartyRequest": {
+        "type": "object",
+        "required": ["PartyName"],
+        "properties": {
+          "PartyName": { "type": "string", "maxLength": 255 },
+          "ContactPerson": { "type": "string", "maxLength": 255, "nullable": true },
+          "Contact1": { "type": "string", "maxLength": 100, "nullable": true },
+          "Contact2": { "type": "string", "maxLength": 100, "nullable": true },
+          "Address": { "type": "string", "nullable": true },
+          "City": { "type": "string", "maxLength": 100, "nullable": true },
+          "State": { "type": "string", "maxLength": 100, "nullable": true },
+          "Country": { "type": "string", "maxLength": 100, "nullable": true },
+          "StateCode": { "type": "integer", "nullable": true },
+          "Email": { "type": "string", "maxLength": 255, "nullable": true },
+          "Website": { "type": "string", "maxLength": 255, "nullable": true },
+          "GSTStatus": { "type": "string", "maxLength": 100, "nullable": true },
+          "GSTIN": { "type": "string", "maxLength": 50, "nullable": true },
+          "PANNo": { "type": "string", "maxLength": 50, "nullable": true },
+          "VATNo": { "type": "integer", "nullable": true },
+          "CSTNo": { "type": "integer", "nullable": true },
+          "ECCNo": { "type": "string", "maxLength": 100, "nullable": true },
+          "IECCode": { "type": "string", "maxLength": 100, "nullable": true },
+          "Company": { "type": "string", "maxLength": 255, "nullable": true },
+          "Pin": { "type": "string", "maxLength": 50, "nullable": true }
+        }
+      },
+
+      "Company": {
+        "type": "object",
+        "properties": {
+          "CompanyID": { "type": "integer" },
+          "Name": { "type": "string", "maxLength": 255 },
+          "Address": { "type": "string", "nullable": true },
+          "GSTIN": { "type": "string", "maxLength": 50, "nullable": true },
+          "PANNo": { "type": "string", "maxLength": 50, "nullable": true },
+          "Phone1": { "type": "string", "maxLength": 50, "nullable": true },
+          "Phone2": { "type": "string", "maxLength": 50, "nullable": true },
+          "state": { "type": "string", "maxLength": 100, "nullable": true },
+          "Statecode": { "type": "integer", "nullable": true },
+          "EmailID1": { "type": "string", "nullable": true },
+          "EmailID2": { "type": "string", "nullable": true },
+          "Website": { "type": "string", "nullable": true },
+          "VATno": { "type": "integer", "nullable": true },
+          "CSTNo": { "type": "integer", "nullable": true },
+          "ECCNo": { "type": "string", "maxLength": 100, "nullable": true },
+          "IECCode": { "type": "string", "maxLength": 100, "nullable": true },
+          "SupplyFrom": { "type": "string", "nullable": true },
+          "FinancialYear": { "type": "string", "maxLength": 100, "nullable": true },
+          "StartDate": { "type": "string", "format": "date-time", "nullable": true },
+          "EndDate": { "type": "string", "format": "date-time", "nullable": true },
+          "SalesInvoiceStarts": { "type": "string", "maxLength": 100, "nullable": true },
+          "ServiceInvoiceStarts": { "type": "string", "maxLength": 100, "nullable": true },
+          "ProformaSalesInvoiceStarts": { "type": "string", "maxLength": 100, "nullable": true },
+          "ProformaServiceInvoiceStarts": { "type": "string", "maxLength": 100, "nullable": true },
+          "SalesInvoicePrefix": { "type": "string", "maxLength": 50, "nullable": true },
+          "ServiceInvoicePrefix": { "type": "string", "maxLength": 50, "nullable": true },
+          "ProformaSalesInvoicePrefix": { "type": "string", "maxLength": 50, "nullable": true },
+          "ProformaServiceInvoicePrefix": { "type": "string", "maxLength": 50, "nullable": true },
+          "QuotationStarts": { "type": "string", "maxLength": 100, "nullable": true },
+          "QuotationPrefix": { "type": "string", "maxLength": 50, "nullable": true },
+          "ProposalStarts": { "type": "string", "maxLength": 100, "nullable": true },
+          "ProposalPrefix": { "type": "string", "maxLength": 50, "nullable": true },
+          "ISOText": { "type": "string", "nullable": true },
+          "Loc": { "type": "string", "maxLength": 255, "nullable": true },
+          "Pin": { "type": "string", "maxLength": 50, "nullable": true },
+          "SignatureImage": { "type": "string", "maxLength": 255, "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CreateCompanyRequest": {
+        "type": "object",
+        "required": ["Name"],
+        "properties": {
+          "Name": { "type": "string", "maxLength": 255 },
+          "Address": { "type": "string", "nullable": true },
+          "GSTIN": { "type": "string", "maxLength": 50, "nullable": true },
+          "PANNo": { "type": "string", "maxLength": 50, "nullable": true },
+          "Phone1": { "type": "string", "maxLength": 50, "nullable": true },
+          "Phone2": { "type": "string", "maxLength": 50, "nullable": true },
+          "state": { "type": "string", "maxLength": 100, "nullable": true },
+          "Statecode": { "type": "integer", "nullable": true },
+          "EmailID1": { "type": "string", "nullable": true },
+          "EmailID2": { "type": "string", "nullable": true },
+          "Website": { "type": "string", "nullable": true },
+          "VATno": { "type": "integer", "nullable": true },
+          "CSTNo": { "type": "integer", "nullable": true },
+          "ECCNo": { "type": "string", "maxLength": 100, "nullable": true },
+          "IECCode": { "type": "string", "maxLength": 100, "nullable": true },
+          "SupplyFrom": { "type": "string", "nullable": true },
+          "FinancialYear": { "type": "string", "maxLength": 100, "nullable": true },
+          "StartDate": { "type": "string", "format": "date-time", "nullable": true },
+          "EndDate": { "type": "string", "format": "date-time", "nullable": true },
+          "SalesInvoiceStarts": { "type": "string", "maxLength": 100, "nullable": true },
+          "ServiceInvoiceStarts": { "type": "string", "maxLength": 100, "nullable": true },
+          "ProformaSalesInvoiceStarts": { "type": "string", "maxLength": 100, "nullable": true },
+          "ProformaServiceInvoiceStarts": { "type": "string", "maxLength": 100, "nullable": true },
+          "SalesInvoicePrefix": { "type": "string", "maxLength": 50, "nullable": true },
+          "ServiceInvoicePrefix": { "type": "string", "maxLength": 50, "nullable": true },
+          "ProformaSalesInvoicePrefix": { "type": "string", "maxLength": 50, "nullable": true },
+          "ProformaServiceInvoicePrefix": { "type": "string", "maxLength": 50, "nullable": true },
+          "QuotationStarts": { "type": "string", "maxLength": 100, "nullable": true },
+          "QuotationPrefix": { "type": "string", "maxLength": 50, "nullable": true },
+          "ProposalStarts": { "type": "string", "maxLength": 100, "nullable": true },
+          "ProposalPrefix": { "type": "string", "maxLength": 50, "nullable": true },
+          "ISOText": { "type": "string", "nullable": true },
+          "Loc": { "type": "string", "maxLength": 255, "nullable": true },
+          "Pin": { "type": "string", "maxLength": 50, "nullable": true },
+          "SignatureImage": { "type": "string", "maxLength": 255, "nullable": true }
+        }
+      },
+
+      "Bank": {
+        "type": "object",
+        "properties": {
+          "BankID": { "type": "integer" },
+          "CompanyID": { "type": "integer", "nullable": true },
+          "BankName": { "type": "string", "maxLength": 255, "nullable": true },
+          "AccountNo": { "type": "string", "maxLength": 255, "nullable": true },
+          "IFSCCode": { "type": "string", "maxLength": 50, "nullable": true },
+          "SwiftCode": { "type": "string", "maxLength": 100, "nullable": true },
+          "Company": { "type": "string", "maxLength": 255, "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CreateBankRequest": {
+        "type": "object",
+        "properties": {
+          "CompanyID": { "type": "integer", "nullable": true },
+          "BankName": { "type": "string", "maxLength": 255, "nullable": true },
+          "AccountNo": { "type": "string", "maxLength": 255, "nullable": true },
+          "IFSCCode": { "type": "string", "maxLength": 50, "nullable": true },
+          "SwiftCode": { "type": "string", "maxLength": 100, "nullable": true },
+          "Company": { "type": "string", "maxLength": 255, "nullable": true }
+        }
+      }
+    }
+  },
+
+  "security": [{ "bearerAuth": [] }],
+
+  "paths": {
+
+    "/auth/sign-up": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Create a new account",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SignupRequest" } } } },
+        "responses": {
+          "201": { "description": "Account created, pending approval", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthResponse" } } } },
+          "400": { "description": "Validation error or duplicate email" }
+        }
+      }
+    },
+    "/auth/sign-in": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Sign in",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SigninRequest" } } } },
+        "responses": {
+          "200": { "description": "Signin successful", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthResponse" } } } },
+          "400": { "description": "Invalid credentials" },
+          "403": { "description": "Account pending or rejected" },
+          "404": { "description": "User not found" }
+        }
+      }
+    },
+    "/auth/sign-out": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Sign out",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Signed out successfully" },
+          "401": { "description": "Authentication required" }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Get current user profile",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "User profile", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthResponse" } } } },
+          "401": { "description": "Authentication required" }
+        }
+      }
+    },
+
+
+    "/admin/users": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "List all users",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+            "required": false,
+            "description": "Filter by account status"
+          }
+        ],
+        "responses": {
+          "200": { "description": "Array of users", "content": { "application/json": { "schema": { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/AuthResponse" } } } } } } }
+        }
+      }
+    },
+
+    "/admin/users/{id}/approve": {
+      "patch": {
+        "tags": ["Admin"],
+        "summary": "Approve a pending user (admin only)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ApproveUserRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "User approved successfully" },
+          "400": { "description": "Invalid request or user already approved" },
+          "404": { "description": "User not found" }
+        }
+      }
+    },
+
+
+    "/party": {
+      "get": {
+        "tags": ["Party"],
+        "summary": "List parties (optional filter by company)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "company",
+            "in": "query",
+            "schema": { "type": "string" },
+            "required": false,
+            "description": "Company name to filter"
+          }
+        ],
+        "responses": {
+          "200": { "description": "Array of parties", "content": { "application/json": { "schema": { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Party" } } } } } } }
+        }
+      },
+      "post": {
+        "tags": ["Party"],
+        "summary": "Create a new party",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreatePartyRequest" } } } },
+        "responses": {
+          "201": { "description": "Party created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Party" } } } },
+          "400": { "description": "Validation error" }
+        }
+      }
+    },
+    "/party/{id}": {
+      "get": {
+        "tags": ["Party"],
+        "summary": "Get a party by ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": {
+          "200": { "description": "Party object", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Party" } } } },
+          "404": { "description": "Party not found" }
+        }
+      },
+      "patch": {
+        "tags": ["Party"],
+        "summary": "Update a party",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreatePartyRequest" } } } },
+        "responses": {
+          "200": { "description": "Party updated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Party" } } } },
+          "400": { "description": "Validation error" },
+          "404": { "description": "Party not found" }
+        }
+      },
+      "delete": {
+        "tags": ["Party"],
+        "summary": "Delete a party",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": {
+          "200": { "description": "Party deleted" },
+          "404": { "description": "Party not found" }
+        }
+      }
+    },
+
+
+    "/company": {
+      "get": {
+        "tags": ["Company"],
+        "summary": "List companies (optional filter by name)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "company",
+            "in": "query",
+            "schema": { "type": "string" },
+            "required": false,
+            "description": "Company name to filter"
+          }
+        ],
+        "responses": {
+          "200": { "description": "Array of companies", "content": { "application/json": { "schema": { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Company" } } } } } } }
+        }
+      },
+      "post": {
+        "tags": ["Company"],
+        "summary": "Create a new company",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateCompanyRequest" } } } },
+        "responses": {
+          "201": { "description": "Company created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Company" } } } },
+          "400": { "description": "Validation error" }
+        }
+      }
+    },
+    "/company/{id}": {
+      "get": {
+        "tags": ["Company"],
+        "summary": "Get a company by ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": {
+          "200": { "description": "Company object", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Company" } } } },
+          "404": { "description": "Company not found" }
+        }
+      },
+      "patch": {
+        "tags": ["Company"],
+        "summary": "Update a company",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateCompanyRequest" } } } },
+        "responses": {
+          "200": { "description": "Company updated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Company" } } } },
+          "400": { "description": "Validation error" },
+          "404": { "description": "Company not found" }
+        }
+      },
+      "delete": {
+        "tags": ["Company"],
+        "summary": "Delete a company",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": {
+          "200": { "description": "Company deleted" },
+          "404": { "description": "Company not found" }
+        }
+      }
+    },
+
+
+    "/bank": {
+      "get": {
+        "tags": ["Bank"],
+        "summary": "List banks (optional filter by company, companyId or bankId)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "company", "in": "query", "schema": { "type": "string" }, "required": false },
+          { "name": "companyId", "in": "query", "schema": { "type": "integer" }, "required": false },
+          { "name": "bankId", "in": "query", "schema": { "type": "integer" }, "required": false }
+        ],
+        "responses": {
+          "200": { "description": "Array of banks", "content": { "application/json": { "schema": { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Bank" } } } } } } }
+        }
+      },
+      "post": {
+        "tags": ["Bank"],
+        "summary": "Create a new bank",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateBankRequest" } } } },
+        "responses": {
+          "201": { "description": "Bank created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Bank" } } } },
+          "400": { "description": "Validation error or invalid CompanyID" }
+        }
+      }
+    },
+    "/bank/{id}": {
+      "get": {
+        "tags": ["Bank"],
+        "summary": "Get a bank by ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": {
+          "200": { "description": "Bank object", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Bank" } } } },
+          "404": { "description": "Bank not found" }
+        }
+      },
+      "patch": {
+        "tags": ["Bank"],
+        "summary": "Update a bank",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreateBankRequest" } } } },
+        "responses": {
+          "200": { "description": "Bank updated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Bank" } } } },
+          "400": { "description": "Validation error or invalid CompanyID" },
+          "404": { "description": "Bank not found" }
+        }
+      },
+      "delete": {
+        "tags": ["Bank"],
+        "summary": "Delete a bank",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": {
+          "200": { "description": "Bank deleted" },
+          "404": { "description": "Bank not found" }
+        }
+      }
+    }
+  }
+}
