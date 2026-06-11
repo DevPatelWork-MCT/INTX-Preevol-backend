@@ -1,4 +1,5 @@
 import { pgTable, uuid, varchar, text, boolean, timestamp, integer, bigint, decimal } from 'drizzle-orm/pg-core'
+import { relations } from 'drizzle-orm'
 
 export const rolesTable = pgTable('roles', {
     roleId: integer('role_id').primaryKey().generatedAlwaysAsIdentity(),
@@ -93,20 +94,30 @@ export const bankTable = pgTable('Bank', {
 
 export const financialSettingsTable = pgTable('FinancialSettings', {
     FinancialYearID: integer('FinancialYearID').primaryKey().generatedAlwaysAsIdentity(),
-    CompanyID: integer('CompanyID').references(() => companyTable.CompanyID),
-    FinancialYear: varchar('FinancialYear', { length: 100 }),
-    StartDate: timestamp('StartDate'),
-    EndDate: timestamp('EndDate'),
+    CompanyID: integer('CompanyID').notNull().references(() => companyTable.CompanyID, { onDelete: 'cascade' }),
+    FinancialYear: varchar('FinancialYear', { length: 100 }).notNull(),
+    StartDate: timestamp('StartDate').notNull(),
+    EndDate: timestamp('EndDate').notNull(),
     SalesInvoiceCount: varchar('SalesInvoiceCount', { length: 100 }),
     ServiceInvoiceCount: varchar('ServiceInvoiceCount', { length: 100 }),
     ProformaSalesInvoiceCount: varchar('ProformaSalesInvoiceCount', { length: 100 }),
     ProformaServiceInvoiceCount: varchar('ProformaServiceInvoiceCount', { length: 100 }),
     QuotationCount: varchar('QuotationCount', { length: 100 }),
     ProposalCount: varchar('ProposalCount', { length: 100 }),
-    Company: varchar('Company', { length: 255 }),
     createdAt: timestamp('created_at').defaultNow(),
     updatedAt: timestamp('updated_at').$onUpdate(() => new Date()),
 })
+
+export const companyRelations = relations(companyTable, ({ many }) => ({
+    financialYears: many(financialSettingsTable),
+}))
+
+export const financialSettingsRelations = relations(financialSettingsTable, ({ one }) => ({
+    company: one(companyTable, {
+        fields: [financialSettingsTable.CompanyID],
+        references: [companyTable.CompanyID],
+    }),
+}))
 
 export const partyTable = pgTable('Party', {
     PartyID: integer('PartyID').primaryKey().generatedAlwaysAsIdentity(),

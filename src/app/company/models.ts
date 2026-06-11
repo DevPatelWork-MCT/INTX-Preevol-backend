@@ -1,45 +1,51 @@
 import { z } from 'zod'
 
+// Helper schemas matching the validation table
 const optionalString = (length?: number) => z.string().max(length ?? 255).nullable().optional()
-const optionalInteger = z.number().int().positive().nullable().optional()
+const requiredString = (min: number, max: number) => z.string().min(min).max(max)
+const requiredInteger = z.coerce.number().int().positive()
+// Optional integer that coerces strings and treats NaN as undefined
+const optionalInteger = z.coerce.number().int().positive().nullable().optional().transform((val) => {
+    return Number.isNaN(val) ? undefined : val;
+})
 const optionalTimestamp = z.coerce.date().nullable().optional()
 
 export const createCompanyPayloadModel = z.object({
-    Name: z.string().min(1).max(255),
-    Address: z.string().nullable().optional(),
-    GSTIN: optionalString(50),
-    PANNo: optionalString(50),
-    Phone1: optionalString(50),
+    // Required fields
+    Name: requiredString(1, 50),
+    Address: requiredString(1, 250),
+    GSTIN: requiredString(15, 15),
+    PANNo: requiredString(10, 10),
+    Phone1: requiredString(1, 50),
+    state: requiredString(1, 100),
+    Statecode: requiredInteger,
+    EmailID1: z.string().email().min(1).max(150),
+    SupplyFrom: requiredString(1, 50),
+    // Optional fields
     Phone2: optionalString(50),
-    state: optionalString(100),
-    Statecode: optionalInteger,
-    EmailID1: optionalString(),
-    EmailID2: optionalString(),
-    Website: optionalString(),
+    // EmailID2 optional with email format validation
+    EmailID2: optionalString(150).refine((val) => val === null || val === undefined || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val), {
+        message: 'Invalid email address',
+    }).optional(),
+    Website: optionalString(150).optional(),
     VATno: optionalInteger,
     CSTNo: optionalInteger,
-    ECCNo: optionalString(100),
-    IECCode: optionalString(100),
-    SupplyFrom: optionalString(),
-    FinancialYear: optionalString(100),
-    StartDate: optionalTimestamp,
-    EndDate: optionalTimestamp,
-    SalesInvoiceStarts: optionalString(100),
-    ServiceInvoiceStarts: optionalString(100),
-    ProformaSalesInvoiceStarts: optionalString(100),
-    ProformaServiceInvoiceStarts: optionalString(100),
-    SalesInvoicePrefix: optionalString(50),
-    ServiceInvoicePrefix: optionalString(50),
-    ProformaSalesInvoicePrefix: optionalString(50),
-    ProformaServiceInvoicePrefix: optionalString(50),
-    QuotationStarts: optionalString(100),
-    QuotationPrefix: optionalString(50),
-    ProposalStarts: optionalString(100),
-    ProposalPrefix: optionalString(50),
-    ISOText: z.string().nullable().optional(),
-    Loc: optionalString(),
-    Pin: optionalString(50),
-    SignatureImage: optionalString(),
+    ECCNo: optionalString(50).optional(),
+    IECCode: optionalString(50).optional(),
+    Loc: optionalString(50).optional(),
+    Pin: optionalString(50).optional(),
+    SignatureImage: optionalString().optional(),
+}).strict()
+
+export const updateCompanyPayloadModel = createCompanyPayloadModel.partial().refine((payload) => {
+    // No date validation needed as date fields are removed.
 })
 
-export const updateCompanyPayloadModel = createCompanyPayloadModel.partial()
+// ── Pagination & filter query schema ──────────────────────────────
+export const listCompaniesQueryModel = z.object({
+    page: z.coerce.number().int().positive().optional().default(1),
+    limit: z.coerce.number().int().positive().max(100).optional().default(10),
+    search: z.string().optional(),
+    sortBy: z.enum(["Name", "createdAt", "CompanyID"]).optional().default("createdAt"),
+    sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
+})

@@ -16,3 +16,9 @@ companyRouter.get('/:id', asyncHandler(companyController.handleGetCompany.bind(c
 companyRouter.post('/', asyncHandler(companyController.handleCreateCompany.bind(companyController)))
 companyRouter.patch('/:id', asyncHandler(companyController.handleUpdateCompany.bind(companyController)))
 companyRouter.delete('/:id', asyncHandler(companyController.handleDeleteCompany.bind(companyController)))
+
+// Financial year routes nested under company
+companyRouter.get('/:id/financial-years', asyncHandler(companyController.handleListFinancialYears.bind(companyController)))
+companyRouter.post('/:id/financial-years', asyncHandler(companyController.handleCreateFinancialYear.bind(companyController)))
+companyRouter.patch('/:id/financial-years/:financialYearId', asyncHandler(companyController.handleUpdateFinancialYear.bind(companyController)))
+companyRouter.delete('/:id/financial-years/:financialYearId', asyncHandler(companyController.handleDeleteFinancialYear.bind(companyController)))

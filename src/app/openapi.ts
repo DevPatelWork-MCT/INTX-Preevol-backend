@@ -384,54 +384,117 @@ export const openApiSpec = {
                 },
             },
         },
-        '/admin/roles/{id}': {
-            patch: {
-                tags: ['Admin - Roles'],
-                summary: 'Update a role',
+        '/financial-years': {
+            get: {
+                tags: ['Financial Years'],
+                summary: 'List financial years',
                 security: [{ bearerAuth: [] }],
                 parameters: [
                     {
-                        name: 'id',
-                        in: 'path',
-                        required: true,
+                        name: 'companyId',
+                        in: 'query',
+                        required: false,
                         schema: { type: 'integer' },
+                        description: 'Filter by company id',
                     },
                 ],
+                responses: {
+                    '200': { description: 'List of financial years' },
+                },
+            },
+            post: {
+                tags: ['Financial Years'],
+                summary: 'Create a financial year',
+                security: [{ bearerAuth: [] }],
                 requestBody: {
+                    required: true,
                     content: {
                         'application/json': {
                             schema: {
                                 type: 'object',
+                                required: ['CompanyID', 'FinancialYear', 'StartDate', 'EndDate'],
                                 properties: {
-                                    roleName: { type: 'string', maxLength: 100 },
-                                    company: { type: 'string', maxLength: 100, nullable: true },
+                                    CompanyID: { type: 'integer', example: 1 },
+                                    FinancialYear: { type: 'string', example: '2026-2027' },
+                                    StartDate: { type: 'string', format: 'date-time', example: '2026-04-01T00:00:00Z' },
+                                    EndDate: { type: 'string', format: 'date-time', example: '2027-03-31T23:59:59Z' },
+                                    SalesInvoiceCount: { type: 'string', nullable: true, example: '1' },
+                                    ServiceInvoiceCount: { type: 'string', nullable: true, example: '1' },
+                                    ProformaSalesInvoiceCount: { type: 'string', nullable: true, example: '1' },
+                                    ProformaServiceInvoiceCount: { type: 'string', nullable: true, example: '1' },
+                                    QuotationCount: { type: 'string', nullable: true, example: '1' },
+                                    ProposalCount: { type: 'string', nullable: true, example: '1' },
                                 },
                             },
                         },
                     },
                 },
                 responses: {
-                    '200': { description: 'Role updated' },
-                    '404': { description: 'Role not found' },
+                    '201': { description: 'Financial year created' },
+                    '400': { description: 'Validation error or invalid CompanyID' },
+                },
+            },
+        },
+        '/financial-years/{companyId}/{id}': {
+            get: {
+                tags: ['Financial Years'],
+                summary: 'Get a financial year',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'companyId', in: 'path', required: true, schema: { type: 'integer' } },
+                    { name: 'id', in: 'path', required: true, schema: { type: 'integer' } },
+                ],
+                responses: {
+                    '200': { description: 'Financial year details' },
+                    '404': { description: 'Financial year not found' },
+                },
+            },
+            patch: {
+                tags: ['Financial Years'],
+                summary: 'Update a financial year',
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    { name: 'companyId', in: 'path', required: true, schema: { type: 'integer' } },
+                    { name: 'id', in: 'path', required: true, schema: { type: 'integer' } },
+                ],
+                requestBody: {
+                    required: false,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    FinancialYear: { type: 'string', example: '2026-2027' },
+                                    StartDate: { type: 'string', format: 'date-time', example: '2026-04-01T00:00:00Z' },
+                                    EndDate: { type: 'string', format: 'date-time', example: '2027-03-31T23:59:59Z' },
+                                    SalesInvoiceCount: { type: 'string', nullable: true, example: '1' },
+                                    ServiceInvoiceCount: { type: 'string', nullable: true, example: '1' },
+                                    ProformaSalesInvoiceCount: { type: 'string', nullable: true, example: '1' },
+                                    ProformaServiceInvoiceCount: { type: 'string', nullable: true, example: '1' },
+                                    QuotationCount: { type: 'string', nullable: true, example: '1' },
+                                    ProposalCount: { type: 'string', nullable: true, example: '1' },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    '200': { description: 'Financial year updated' },
+                    '400': { description: 'Validation error' },
+                    '404': { description: 'Financial year not found' },
                 },
             },
             delete: {
-                tags: ['Admin - Roles'],
-                summary: 'Delete a role',
-                description: 'Deletes a role. Cannot delete roles assigned to users.',
+                tags: ['Financial Years'],
+                summary: 'Delete a financial year',
                 security: [{ bearerAuth: [] }],
                 parameters: [
-                    {
-                        name: 'id',
-                        in: 'path',
-                        required: true,
-                        schema: { type: 'integer' },
-                    },
+                    { name: 'companyId', in: 'path', required: true, schema: { type: 'integer' } },
+                    { name: 'id', in: 'path', required: true, schema: { type: 'integer' } },
                 ],
                 responses: {
-                    '200': { description: 'Role deleted' },
-                    '400': { description: 'Role assigned to users' },
-                    '404': { description: 'Role not found' },
+                    '200': { description: 'Financial year deleted' },
+                    '404': { description: 'Financial year not found' },
                 },
             },
         },

@@ -7,6 +7,7 @@ import { adminRouter } from './admin/routes.js'
 import { partyRouter } from './party/routes.js'
 import { companyRouter } from './company/routes.js'
 import { bankRouter } from './Bank/routes.js'
+import { financialRouter } from './financial/routes.js'
 import { authenticationMiddleware } from './middleware/auth-middleware.js'
 import { openApiSpec } from './openapi.js'
 
@@ -37,6 +38,7 @@ export function createApplication(): Express {
     app.use('/party', partyRouter)
     app.use('/company', companyRouter)
     app.use('/bank', bankRouter)
+    app.use('/financial-years', financialRouter)
 
     // Error handler
     app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
