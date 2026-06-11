@@ -64,13 +64,22 @@ class AuthenticationController {
 
         if (userSelect.password !== hash) return res.status(400).json({ message: 'email or password is incorrect' })
 
-        const session = await createSession(userSelect.id)
+        // Create JWT token (stateless — no DB session lookup needed on each request)
+        const { signJwt } = await import('./utils/jwt.js')
+        const token = signJwt({
+            userId: userSelect.id,
+            email: userSelect.email,
+            company: userSelect.company,
+            isAdmin: userSelect.isAdmin,
+            roleId: userSelect.roleId,
+            accountStatus: userSelect.accountStatus,
+        })
 
         return res.json({
             message: 'Signin Success',
             data: {
-                token: session.token,
-                expiresAt: session.expiresAt,
+                token,
+                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
             },
         })
     }
@@ -79,7 +88,12 @@ class AuthenticationController {
         const user = req.user as AuthUser | undefined
         if (!user?.sessionToken) return res.status(401).json({ error: 'Authentication Required' })
 
-        await deleteSession(user.sessionToken)
+        // Try to delete session (if session-based token), ignore if JWT (stateless)
+        try {
+            await deleteSession(user.sessionToken)
+        } catch {
+            // JWT tokens are stateless — no server-side cleanup needed
+        }
 
         return res.json({ message: 'Signed out successfully' })
     }

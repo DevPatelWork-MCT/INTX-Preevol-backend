@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '../../db/index.js'
 import { rolesTable, usersTable } from '../../db/schema.js'
 import { getSessionByToken } from '../auth/utils/session.js'
+import { verifyJwt } from '../auth/utils/jwt.js'
 import type { AuthUser } from '../auth/types.js'
 
 declare module 'express-serve-static-core' {
@@ -24,34 +25,47 @@ export function authenticationMiddleware() {
         }
 
         const token = header.split(' ')[1]
-
         if (!token) return res.status(400).json({ error: 'authorization header must start with Bearer and followed by token' })
 
+        // ── Try JWT first (stateless, no DB lookup) ──
+        const jwtPayload = verifyJwt(token)
+        if (jwtPayload) {
+            // Still fetch user from DB to get latest role/company info, but only by PK (fast)
+            const [user] = await db.select().from(usersTable).where(eq(usersTable.id, jwtPayload.userId))
+            if (user) {
+                req.user = {
+                    id: user.id,
+                    isAdmin: user.isAdmin,
+                    roleId: user.roleId,
+                    accountStatus: user.accountStatus,
+                    company: user.company,
+                    sessionToken: token,
+                }
+                next()
+                return
+            }
+        }
+
+        // ── Fallback to session-based auth (legacy) ──
         const session = await getSessionByToken(token)
-
-        if (!session) {
-            delete req.user
-            next()
-            return
+        if (session) {
+            const [user] = await db.select().from(usersTable).where(eq(usersTable.id, session.userId))
+            if (user) {
+                req.user = {
+                    id: user.id,
+                    isAdmin: user.isAdmin,
+                    roleId: user.roleId,
+                    accountStatus: user.accountStatus,
+                    company: user.company,
+                    sessionToken: token,
+                }
+                next()
+                return
+            }
         }
 
-        const [user] = await db.select().from(usersTable).where(eq(usersTable.id, session.userId))
-
-        if (!user) {
-            delete req.user
-            next()
-            return
-        }
-
-        req.user = {
-            id: user.id,
-            isAdmin: user.isAdmin,
-            roleId: user.roleId,
-            accountStatus: user.accountStatus,
-            company: user.company,
-            sessionToken: token,
-        }
-
+        // No valid auth found
+        delete req.user
         next()
     }
 }

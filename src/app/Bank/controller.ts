@@ -1,29 +1,60 @@
 import type { Request, Response } from 'express'
-import { and, eq } from 'drizzle-orm'
+import { and, eq, ilike, desc, asc, sql } from 'drizzle-orm'
 import { db } from '../../db/index.js'
 import { bankTable, companyTable } from '../../db/schema.js'
-import { createBankPayloadModel, updateBankPayloadModel } from './models.js'
+import { createBankPayloadModel, updateBankPayloadModel, listBanksQueryModel } from './models.js'
 
 class BankController {
     public async handleListBanks(req: Request, res: Response) {
-        const company = typeof req.query.company === 'string' ? req.query.company : undefined
-        const companyId = typeof req.query.companyId === 'string' ? Number(req.query.companyId) : undefined
-        const bankId = typeof req.query.bankId === 'string' ? Number(req.query.bankId) : undefined
+        const queryResult = listBanksQueryModel.safeParse(req.query)
+        if (!queryResult.success) {
+            return res.status(400).json({ message: 'Invalid query parameters', error: queryResult.error.issues })
+        }
 
-        if (companyId && Number.isNaN(companyId)) return res.status(400).json({ message: 'Invalid companyId' })
-        if (bankId && Number.isNaN(bankId)) return res.status(400).json({ message: 'Invalid bankId' })
+        const { page, limit, search, sortBy, sortOrder, companyId } = queryResult.data
+        const offset = (page - 1) * limit
 
         const conditions = []
+        if (search) {
+            conditions.push(ilike(bankTable.BankName, `%${search}%`))
+        }
+        if (companyId) {
+            conditions.push(eq(bankTable.CompanyID, companyId))
+        }
 
-        if (company) conditions.push(eq(bankTable.Company, company))
-        if (companyId) conditions.push(eq(bankTable.CompanyID, companyId))
-        if (bankId) conditions.push(eq(bankTable.BankID, bankId))
+        const whereClause = conditions.length > 0 ? and(...conditions) : undefined
 
-        const banks = conditions.length > 0
-            ? await db.select().from(bankTable).where(and(...conditions))
-            : await db.select().from(bankTable)
+        const sortColumnMap = {
+            BankName: bankTable.BankName,
+            createdAt: bankTable.createdAt,
+            BankID: bankTable.BankID,
+        } as const
+        const sortColumn = sortColumnMap[sortBy as keyof typeof sortColumnMap] ?? bankTable.createdAt
+        const sortFn = sortOrder === 'asc' ? asc : desc
 
-        return res.json({ data: banks })
+        const countResult = await db
+            .select({ total: sql<number>`count(*)`.mapWith(Number) })
+            .from(bankTable)
+            .where(whereClause)
+        const total = countResult[0]?.total ?? 0
+
+        const banks = await db
+            .select()
+            .from(bankTable)
+            .where(whereClause)
+            .orderBy(sortFn(sortColumn))
+            .limit(limit)
+            .offset(offset)
+
+        return res.json({
+            data: banks,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
+            },
+        })
     }
 
     public async handleGetBank(req: Request, res: Response) {

@@ -13,3 +13,13 @@ export const createBankPayloadModel = z.object({
 })
 
 export const updateBankPayloadModel = createBankPayloadModel.partial()
+
+// ── Pagination & filter query schema ──────────────────────────────
+export const listBanksQueryModel = z.object({
+    page: z.coerce.number().int().positive().optional().default(1),
+    limit: z.coerce.number().int().positive().max(100).optional().default(10),
+    search: z.string().optional(),
+    sortBy: z.enum(["BankName", "createdAt", "BankID"]).optional().default("createdAt"),
+    sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
+    companyId: z.coerce.number().int().positive().optional(),
+})
