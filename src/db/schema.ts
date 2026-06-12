@@ -26,6 +26,8 @@ export const usersTable = pgTable('users', {
     adminRequested: boolean('admin_requested').default(false).notNull(),
     accountStatus: varchar('account_status', { length: 20 }).default('pending').notNull(),
     company: varchar('company', { length: 100 }),
+    avatar: text('avatar'),
+    profilePicture: text('profile_picture'),
 
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').$onUpdate(() => new Date()),

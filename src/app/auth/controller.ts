@@ -6,6 +6,7 @@ import { db } from '../../db/index.js'
 import { rolesTable, usersTable } from '../../db/schema.js'
 import { createSession, deleteSession } from './utils/session.js'
 import type { AuthUser } from './types.js'
+import { UploadService } from '../../services/upload.service.js'
 
 class AuthenticationController {
     public async handleSignup(req: Request, res: Response) {
@@ -122,8 +123,65 @@ class AuthenticationController {
             accountStatus: userResult.accountStatus,
             isAdmin: userResult.isAdmin,
             adminRequested: userResult.adminRequested,
+            avatar: userResult.avatar,
+            profilePicture: userResult.profilePicture,
             role,
         })
+    }
+
+    public async handleUploadAvatar(req: Request, res: Response) {
+        const { id } = req.user as AuthUser
+
+        if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded" })
+        }
+
+        const [userResult] = await db.select().from(usersTable).where(eq(usersTable.id, id))
+        if (!userResult) return res.status(404).json({ message: "User not found" })
+
+        // Delete old avatar if exists
+        if (userResult.profilePicture) {
+            await UploadService.deleteAvatarByUrl(userResult.profilePicture)
+        }
+
+        // Save new avatar
+        try {
+            const result = await UploadService.saveAvatar(
+                id,
+                req.file.buffer,
+                req.file.mimetype,
+                req.file.originalname
+            )
+
+            // Update user record
+            await db.update(usersTable)
+                .set({ profilePicture: result.url })
+                .where(eq(usersTable.id, id))
+
+            return res.json({
+                message: "Avatar uploaded successfully",
+                profilePicture: result.url,
+            })
+        } catch (err: any) {
+            return res.status(400).json({ message: err.message || "Failed to upload avatar" })
+        }
+    }
+
+    public async handleDeleteAvatar(req: Request, res: Response) {
+        const { id } = req.user as AuthUser
+
+        const [userResult] = await db.select().from(usersTable).where(eq(usersTable.id, id))
+        if (!userResult) return res.status(404).json({ message: "User not found" })
+
+        if (userResult.profilePicture) {
+            await UploadService.deleteAvatarByUrl(userResult.profilePicture)
+        }
+
+        await db.update(usersTable)
+            .set({ profilePicture: null })
+            .where(eq(usersTable.id, id))
+
+        return res.json({ message: "Avatar deleted successfully" })
     }
 }
 

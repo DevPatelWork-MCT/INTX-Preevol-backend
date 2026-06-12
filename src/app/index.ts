@@ -1,6 +1,8 @@
 import express from 'express'
 import type { Express, Request, Response, NextFunction } from 'express'
 import cors from 'cors'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
 import { authRouter } from './auth/routes.js'
 import { adminRouter } from './admin/routes.js'
@@ -31,6 +33,10 @@ export function createApplication(): Express {
     app.use(express.json())
     app.use(authenticationMiddleware())
 
+    // Serve uploaded files statically
+    const __filename = fileURLToPath(import.meta.url)
+    const __dirname = path.dirname(__filename)
+    app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')))
 
     // Routes
     app.get('/', (req, res) => {
