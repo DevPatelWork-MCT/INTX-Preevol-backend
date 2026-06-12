@@ -8,6 +8,12 @@ import { partyRouter } from './party/routes.js'
 import { companyRouter } from './company/routes.js'
 import { bankRouter } from './Bank/routes.js'
 import { financialRouter } from './financial/routes.js'
+import { categoryRouter } from './category/routes.js'
+import { productRouter } from './product/routes.js'
+import { vendorRouter } from './vendor/routes.js'
+import { invoiceRouter } from './invoice/routes.js'
+import { purchaseOrderRouter } from './purchase-order/routes.js'
+import { goodsRouter } from './goods/routes.js'
 import { authenticationMiddleware } from './middleware/auth-middleware.js'
 import { openApiSpec } from './openapi.js'
 
@@ -39,6 +45,12 @@ export function createApplication(): Express {
     app.use('/company', companyRouter)
     app.use('/bank', bankRouter)
     app.use('/financial-years', financialRouter)
+    app.use('/category', categoryRouter)
+    app.use('/product', productRouter)
+    app.use('/vendor', vendorRouter)
+    app.use('/invoice', invoiceRouter)
+    app.use('/purchase-order', purchaseOrderRouter)
+    app.use('/goods', goodsRouter)
 
     // Error handler
     app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
