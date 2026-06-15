@@ -16,6 +16,7 @@ import { vendorRouter } from './vendor/routes.js'
 import { invoiceRouter } from './invoice/routes.js'
 import { purchaseOrderRouter } from './purchase-order/routes.js'
 import { goodsRouter } from './goods/routes.js'
+import { quotationRouter } from './quotation/routes.js'
 import { authenticationMiddleware } from './middleware/auth-middleware.js'
 import { openApiSpec } from './openapi.js'
 
@@ -57,6 +58,7 @@ export function createApplication(): Express {
     app.use('/invoice', invoiceRouter)
     app.use('/purchase-order', purchaseOrderRouter)
     app.use('/goods', goodsRouter)
+    app.use('/quotation', quotationRouter)
 
     // Error handler
     app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
