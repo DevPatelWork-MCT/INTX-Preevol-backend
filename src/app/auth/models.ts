@@ -12,5 +12,5 @@ export const signupPayloadModel = z.object({
 export const signinPayloadModel = z.object({
     email: z.string().email().toLowerCase().max(322),
     password: z.string().min(6).max(100),
-    company: z.string().nullable().optional(),
+    companyId: z.number().int().positive('Company ID is required'),
 })

@@ -3,7 +3,7 @@ import { randomBytes, createHmac } from 'node:crypto'
 import { eq } from 'drizzle-orm'
 import { signinPayloadModel, signupPayloadModel } from './models.js'
 import { db } from '../../db/index.js'
-import { rolesTable, usersTable } from '../../db/schema.js'
+import { companyTable, rolesTable, usersTable } from '../../db/schema.js'
 import { createSession, deleteSession } from './utils/session.js'
 import type { AuthUser } from './types.js'
 import { UploadService } from '../../services/upload.service.js'
@@ -46,7 +46,7 @@ class AuthenticationController {
 
         if (validationResult.error) return res.status(400).json({ message: 'body validation failed', error: validationResult.error.issues })
 
-        const { email, password } = validationResult.data
+        const { email, password, companyId } = validationResult.data
 
         const [userSelect] = await db.select().from(usersTable).where(eq(usersTable.email, email))
 
@@ -65,12 +65,19 @@ class AuthenticationController {
 
         if (userSelect.password !== hash) return res.status(400).json({ message: 'email or password is incorrect' })
 
+        // Validate the company exists
+        const [companyRecord] = await db.select().from(companyTable).where(eq(companyTable.CompanyID, companyId))
+        if (!companyRecord) {
+            return res.status(400).json({ message: `Company with ID ${companyId} does not exist` })
+        }
+
         // Create JWT token (stateless — no DB session lookup needed on each request)
         const { signJwt } = await import('./utils/jwt.js')
         const token = signJwt({
             userId: userSelect.id,
             email: userSelect.email,
             company: userSelect.company,
+            companyId: companyRecord.CompanyID,
             isAdmin: userSelect.isAdmin,
             roleId: userSelect.roleId,
             accountStatus: userSelect.accountStatus,
@@ -80,6 +87,8 @@ class AuthenticationController {
             message: 'Signin Success',
             data: {
                 token,
+                companyId: companyRecord.CompanyID,
+                companyName: companyRecord.Name,
                 expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
             },
         })

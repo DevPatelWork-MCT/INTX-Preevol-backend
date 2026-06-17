@@ -7,6 +7,7 @@ export interface JwtPayload {
   userId: string
   email: string
   company: string | null
+  companyId: number | null
   isAdmin: boolean
   roleId: number | null
   accountStatus: string

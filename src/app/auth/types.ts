@@ -4,5 +4,6 @@ export interface AuthUser {
     roleId: number | null
     accountStatus: string
     company: string | null
+    companyId: number | null
     sessionToken?: string
 }

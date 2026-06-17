@@ -39,6 +39,7 @@ export function authenticationMiddleware() {
                     roleId: user.roleId,
                     accountStatus: user.accountStatus,
                     company: user.company,
+                    companyId: jwtPayload.companyId,
                     sessionToken: token,
                 }
                 next()
@@ -57,6 +58,7 @@ export function authenticationMiddleware() {
                     roleId: user.roleId,
                     accountStatus: user.accountStatus,
                     company: user.company,
+                    companyId: null,
                     sessionToken: token,
                 }
                 next()
