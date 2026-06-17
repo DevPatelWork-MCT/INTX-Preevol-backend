@@ -43,7 +43,7 @@ export const sessionsTable = pgTable('sessions', {
 
 export const companyTable = pgTable('Company', {
     CompanyID: integer('CompanyID').primaryKey().generatedAlwaysAsIdentity(),
-    Name: varchar('Name', { length: 255 }).notNull(),
+    Name: varchar('Name', { length: 255 }).notNull().unique(),
     Address: text('Address'),
     GSTIN: varchar('GSTIN', { length: 50 }),
     PANNo: varchar('PANNo', { length: 50 }),

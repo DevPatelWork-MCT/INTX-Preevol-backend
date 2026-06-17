@@ -10,35 +10,63 @@ const optionalInteger = z.coerce.number().int().positive().nullable().optional()
 })
 const optionalTimestamp = z.coerce.date().nullable().optional()
 
+// ── GSTIN validation: exactly 15 alphanumeric characters ──────────
+const gstinSchema = z.string().length(15, 'Please Enter Valid 15 Character GSTIN')
+
+// ── PAN validation: exactly 10 alphanumeric characters ────────────
+const panSchema = z.string().length(10, 'Please Enter Valid 10 Character PAN No')
+
+// ── Email regex matching VB.NET pattern ───────────────────────────
+const emailRegex = /^[a-zA-Z0-9\._-]+@([a-zA-Z0-9_-]+\.)+([a-zA-Z]{2,3})$/
+
 export const createCompanyPayloadModel = z.object({
-    // Required fields
+    // ── Required fields (20 mandatory per VB.NET) ─────────────────
     Name: requiredString(1, 50),
     Address: requiredString(1, 250),
-    GSTIN: requiredString(15, 15),
-    PANNo: requiredString(10, 10),
+    GSTIN: gstinSchema,
+    PANNo: panSchema,
     Phone1: requiredString(1, 50),
     state: requiredString(1, 100),
     Statecode: requiredInteger,
-    EmailID1: z.string().email().min(1).max(150),
+    EmailID1: z.string().min(1).max(150).regex(emailRegex, 'Not an Email! Enter Valid Email Address'),
     SupplyFrom: requiredString(1, 50),
-    // Optional fields
+    FinancialYear: requiredString(1, 10),
+    SalesInvoiceStarts: requiredString(1, 10),
+    ServiceInvoiceStarts: requiredString(1, 10),
+    ProformaSalesInvoiceStarts: requiredString(1, 10),
+    ProformaServiceInvoiceStarts: requiredString(1, 10),
+    SalesInvoicePrefix: requiredString(1, 20),
+    ServiceInvoicePrefix: requiredString(1, 20),
+    ProformaSalesInvoicePrefix: requiredString(1, 20),
+    ProformaServiceInvoicePrefix: requiredString(1, 20),
+    QuotationStarts: requiredString(1, 20),
+    QuotationPrefix: requiredString(1, 20),
+
+    // ── Optional fields ──────────────────────────────────────────
     Phone2: optionalString(50),
-    // EmailID2 optional with email format validation
-    EmailID2: optionalString(150).refine((val) => val === null || val === undefined || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val), {
-        message: 'Invalid email address',
+    EmailID2: optionalString(150).refine((val) => val === null || val === undefined || emailRegex.test(val), {
+        message: 'Not an Email! Enter Valid Email Address',
     }).optional(),
     Website: optionalString(150).optional(),
     VATno: optionalInteger,
     CSTNo: optionalInteger,
     ECCNo: optionalString(50).optional(),
     IECCode: optionalString(50).optional(),
+    StartDate: optionalTimestamp,
+    EndDate: optionalTimestamp,
     Loc: optionalString(50).optional(),
     Pin: optionalString(50).optional(),
+    ISOText: optionalString(50).optional(),
     SignatureImage: optionalString().optional(),
+    ProposalStarts: optionalString(100).optional(),
+    ProposalPrefix: optionalString(50).optional(),
 }).strict()
 
 export const updateCompanyPayloadModel = createCompanyPayloadModel.partial().refine((payload) => {
-    // No date validation needed as date fields are removed.
+    // At least one field must be provided
+    return Object.keys(payload).length > 0
+}, {
+    message: 'At least one field must be provided for update',
 })
 
 // ── Pagination & filter query schema ──────────────────────────────

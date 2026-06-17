@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express'
-import { and, eq, ilike, desc, asc, sql, inArray } from 'drizzle-orm'
+import { and, eq, ilike, desc, asc, sql, inArray, ne } from 'drizzle-orm'
 import { db } from '../../db/index.js'
 import { companyTable, financialSettingsTable } from '../../db/schema.js'
 import { createCompanyPayloadModel, updateCompanyPayloadModel, listCompaniesQueryModel } from './models.js'
@@ -132,7 +132,20 @@ class CompanyController {
             return res.status(400).json({ message: 'body validation failed', error: validationResult.error.issues })
         }
 
-        const [created] = await db.insert(companyTable).values(validationResult.data as any).returning()
+        const body = validationResult.data as any
+
+        // ── Duplicate name check ────────────────────────────────
+        const [existingName] = await db
+            .select({ CompanyID: companyTable.CompanyID })
+            .from(companyTable)
+            .where(eq(companyTable.Name, body.Name))
+            .limit(1)
+
+        if (existingName) {
+            return res.status(409).json({ message: 'Value Exist! Enter Unique Value.', field: 'Name' })
+        }
+
+        const [created] = await db.insert(companyTable).values(body).returning()
 
         return res.status(201).json({ message: 'Company created successfully', data: created })
     }
@@ -159,8 +172,23 @@ class CompanyController {
 
         if (!existing) return res.status(404).json({ message: 'Company not found' })
 
+        const body = validationResult.data as any
+
+        // ── Duplicate name check (exclude current record) ───────
+        if (body.Name) {
+            const [existingName] = await db
+                .select({ CompanyID: companyTable.CompanyID })
+                .from(companyTable)
+                .where(and(eq(companyTable.Name, body.Name), ne(companyTable.CompanyID, companyId)))
+                .limit(1)
+
+            if (existingName) {
+                return res.status(409).json({ message: 'Value Exist! Enter Unique Value.', field: 'Name' })
+            }
+        }
+
         const [updated] = await db.update(companyTable)
-            .set(validationResult.data as any)
+            .set(body)
             .where(and(...conditions))
             .returning()
 
@@ -218,6 +246,21 @@ class CompanyController {
         const [company] = await db.select().from(companyTable).where(eq(companyTable.CompanyID, companyId))
         if (!company) return res.status(404).json({ message: 'Company not found' })
 
+        // ── Duplicate financial year check (VB.NET: EndDateDateEdit_Validating) ──
+        const fyData = validationResult.data as any
+        const [existingFY] = await db
+            .select({ FinancialYearID: financialSettingsTable.FinancialYearID })
+            .from(financialSettingsTable)
+            .where(and(
+                eq(financialSettingsTable.CompanyID, companyId),
+                eq(financialSettingsTable.FinancialYear, fyData.FinancialYear),
+            ))
+            .limit(1)
+
+        if (existingFY) {
+            return res.status(409).json({ message: 'Value Exist! Enter Unique Value.', field: 'FinancialYear' })
+        }
+
         const [created] = await db.insert(financialSettingsTable).values(validationResult.data).returning()
         return res.status(201).json({ message: 'Financial year created successfully', data: created })
     }
@@ -241,6 +284,24 @@ class CompanyController {
                 eq(financialSettingsTable.FinancialYearID, financialYearId),
             ))
         if (!existing) return res.status(404).json({ message: 'Financial year not found' })
+
+        // ── Duplicate financial year check (exclude current record) ──
+        const fyData = validationResult.data as any
+        if (fyData.FinancialYear) {
+            const [existingFY] = await db
+                .select({ FinancialYearID: financialSettingsTable.FinancialYearID })
+                .from(financialSettingsTable)
+                .where(and(
+                    eq(financialSettingsTable.CompanyID, companyId),
+                    eq(financialSettingsTable.FinancialYear, fyData.FinancialYear),
+                    ne(financialSettingsTable.FinancialYearID, financialYearId),
+                ))
+                .limit(1)
+
+            if (existingFY) {
+                return res.status(409).json({ message: 'Value Exist! Enter Unique Value.', field: 'FinancialYear' })
+            }
+        }
 
         const [updated] = await db
             .update(financialSettingsTable)
